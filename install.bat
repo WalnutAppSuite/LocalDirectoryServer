@@ -47,6 +47,18 @@ if "!SUBDOMAIN!"=="" (
     set SUBDOMAIN=shivanelocal.walnutedu.in
     echo Using default: !SUBDOMAIN!
 )
+
+REM Check if archive folder has certs (live folder often has broken symlinks)
+set CERT_PATH=%CERT_DIR%\live\!SUBDOMAIN!
+if exist "%CERT_DIR%\archive\!SUBDOMAIN!\fullchain1.pem" (
+    set CERT_PATH=%CERT_DIR%\archive\!SUBDOMAIN!
+    set CERT_FILE=fullchain1.pem
+    set KEY_FILE=privkey1.pem
+    echo Using archive certs: !CERT_PATH!
+) else (
+    set CERT_FILE=fullchain.pem
+    set KEY_FILE=privkey.pem
+)
 echo.
 
 REM Create installation directory
@@ -82,8 +94,8 @@ echo # Edit these values for your setup
 echo.
 echo PORT=8050
 echo CONTENT_DIR=!CONTENT_DIR!
-echo CERT_FILE=%CERT_DIR%\live\!SUBDOMAIN!\fullchain.pem
-echo KEY_FILE=%CERT_DIR%\live\!SUBDOMAIN!\privkey.pem
+echo CERT_FILE=!CERT_PATH!\!CERT_FILE!
+echo KEY_FILE=!CERT_PATH!\!KEY_FILE!
 echo SKIP_DRIVE_CHECK=0
 ) > "%INSTALL_DIR%\config.env"
 
@@ -92,7 +104,7 @@ echo Creating service runner script...
 (
 echo @echo off
 echo cd /d "%INSTALL_DIR%"
-echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "C:\Certbot\live\!SUBDOMAIN!\fullchain.pem" --key "C:\Certbot\live\!SUBDOMAIN!\privkey.pem"
+echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "!CERT_PATH!\!CERT_FILE!" --key "!CERT_PATH!\!KEY_FILE!"
 ) > "%INSTALL_DIR%\run_service.bat"
 
 REM Create manual startup script
@@ -100,7 +112,7 @@ REM Create manual startup script
 echo @echo off
 echo cd /d "%INSTALL_DIR%"
 echo echo Starting Local Directory Server manually...
-echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "C:\Certbot\live\!SUBDOMAIN!\fullchain.pem" --key "C:\Certbot\live\!SUBDOMAIN!\privkey.pem"
+echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "!CERT_PATH!\!CERT_FILE!" --key "!CERT_PATH!\!KEY_FILE!"
 echo pause
 ) > "%INSTALL_DIR%\start_server.bat"
 
@@ -135,7 +147,7 @@ if exist "%INSTALL_DIR%\nssm.exe" (
     )
 
     REM Install the service
-    "%INSTALL_DIR%\nssm.exe" install %SERVICE_NAME% "!PYTHON_PATH!" "%INSTALL_DIR%\directory_server.py" -p 8050 -d "!CONTENT_DIR!" --cert "C:\Certbot\live\!SUBDOMAIN!\fullchain.pem" --key "C:\Certbot\live\!SUBDOMAIN!\privkey.pem"
+    "%INSTALL_DIR%\nssm.exe" install %SERVICE_NAME% "!PYTHON_PATH!" "%INSTALL_DIR%\directory_server.py" -p 8050 -d "!CONTENT_DIR!" --cert "!CERT_PATH!\!CERT_FILE!" --key "!CERT_PATH!\!KEY_FILE!"
 
     REM Configure service
     "%INSTALL_DIR%\nssm.exe" set %SERVICE_NAME% AppDirectory "%INSTALL_DIR%"
@@ -233,6 +245,6 @@ echo.
 echo IMPORTANT: Before starting, ensure:
 echo   1. Python is installed and in PATH
 echo   2. Google Drive is synced to: !CONTENT_DIR!
-echo   3. SSL certificates exist in: %CERT_DIR%\live\!SUBDOMAIN!\
+echo   3. SSL certificates exist in: !CERT_PATH!
 echo.
 pause

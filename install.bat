@@ -54,6 +54,17 @@ if "!SUBDOMAIN!"=="" (
     echo Using default: !SUBDOMAIN!
 )
 
+REM Get Python path
+for /f "delims=" %%i in ('where python 2^>nul') do set DEFAULT_PYTHON=%%i
+if not defined DEFAULT_PYTHON set DEFAULT_PYTHON=python
+echo.
+echo Detected Python: !DEFAULT_PYTHON!
+set /p PYTHON_PATH="Enter Python executable path (press Enter to use detected): "
+if "!PYTHON_PATH!"=="" (
+    set PYTHON_PATH=!DEFAULT_PYTHON!
+)
+echo Using: !PYTHON_PATH!
+
 REM Check if archive folder has certs (live folder often has broken symlinks)
 set CERT_PATH=%CERT_DIR%\live\!SUBDOMAIN!
 if exist "%CERT_DIR%\archive\!SUBDOMAIN!\fullchain1.pem" (
@@ -144,13 +155,6 @@ if exist "%INSTALL_DIR%\nssm.exe" (
     REM Stop and remove existing service if present
     "%INSTALL_DIR%\nssm.exe" stop %SERVICE_NAME% >nul 2>&1
     "%INSTALL_DIR%\nssm.exe" remove %SERVICE_NAME% confirm >nul 2>&1
-
-    REM Find Python path
-    for /f "delims=" %%i in ('where python 2^>nul') do set PYTHON_PATH=%%i
-    if not defined PYTHON_PATH (
-        echo WARNING: Python not found in PATH. Service may not start.
-        set PYTHON_PATH=python
-    )
 
     REM Install the service
     "%INSTALL_DIR%\nssm.exe" install %SERVICE_NAME% "!PYTHON_PATH!" "%INSTALL_DIR%\directory_server.py" -p 8050 -d "!CONTENT_DIR!" --cert "!CERT_PATH!\!CERT_FILE!" --key "!CERT_PATH!\!KEY_FILE!"

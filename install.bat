@@ -26,6 +26,29 @@ set SERVICE_NAME=LocalDirectoryServer
 echo Installation directory: %INSTALL_DIR%
 echo.
 
+REM Get user input for content directory
+echo.
+set /p CONTENT_DIR="Enter Google Drive content folder path (e.g., G:\My Drive\Content): "
+if "!CONTENT_DIR!"=="" (
+    set CONTENT_DIR=G:\My Drive\Content
+    echo Using default: !CONTENT_DIR!
+)
+
+REM Validate the directory exists
+if not exist "!CONTENT_DIR!" (
+    echo WARNING: Directory "!CONTENT_DIR!" does not exist.
+    echo Make sure Google Drive is synced before starting the server.
+)
+echo.
+
+REM Get subdomain for SSL certificate
+set /p SUBDOMAIN="Enter subdomain for SSL cert (e.g., shivanelocal.walnutedu.in): "
+if "!SUBDOMAIN!"=="" (
+    set SUBDOMAIN=shivanelocal.walnutedu.in
+    echo Using default: !SUBDOMAIN!
+)
+echo.
+
 REM Create installation directory
 if not exist "%INSTALL_DIR%" (
     echo Creating directory: %INSTALL_DIR%
@@ -58,9 +81,9 @@ echo # Local Directory Server Configuration
 echo # Edit these values for your setup
 echo.
 echo PORT=8050
-echo CONTENT_DIR=G:\My Drive\Content
-echo CERT_FILE=%CERT_DIR%\live\shivanelocal.walnutedu.in\fullchain.pem
-echo KEY_FILE=%CERT_DIR%\live\shivanelocal.walnutedu.in\privkey.pem
+echo CONTENT_DIR=!CONTENT_DIR!
+echo CERT_FILE=%CERT_DIR%\live\!SUBDOMAIN!\fullchain.pem
+echo KEY_FILE=%CERT_DIR%\live\!SUBDOMAIN!\privkey.pem
 echo SKIP_DRIVE_CHECK=0
 ) > "%INSTALL_DIR%\config.env"
 
@@ -69,7 +92,7 @@ echo Creating service runner script...
 (
 echo @echo off
 echo cd /d "%INSTALL_DIR%"
-echo python directory_server.py -p 8050 -d "G:\My Drive\Content" --cert "C:\Certbot\live\shivanelocal.walnutedu.in\fullchain.pem" --key "C:\Certbot\live\shivanelocal.walnutedu.in\privkey.pem"
+echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "C:\Certbot\live\!SUBDOMAIN!\fullchain.pem" --key "C:\Certbot\live\!SUBDOMAIN!\privkey.pem"
 ) > "%INSTALL_DIR%\run_service.bat"
 
 REM Create manual startup script
@@ -77,7 +100,7 @@ REM Create manual startup script
 echo @echo off
 echo cd /d "%INSTALL_DIR%"
 echo echo Starting Local Directory Server manually...
-echo python directory_server.py -p 8050 -d "G:\My Drive\Content" --cert "C:\Certbot\live\shivanelocal.walnutedu.in\fullchain.pem" --key "C:\Certbot\live\shivanelocal.walnutedu.in\privkey.pem"
+echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "C:\Certbot\live\!SUBDOMAIN!\fullchain.pem" --key "C:\Certbot\live\!SUBDOMAIN!\privkey.pem"
 echo pause
 ) > "%INSTALL_DIR%\start_server.bat"
 
@@ -86,7 +109,7 @@ REM Create HTTP-only startup script
 echo @echo off
 echo cd /d "%INSTALL_DIR%"
 echo echo Starting Local Directory Server ^(HTTP only^)...
-echo python directory_server.py -p 8050 -d "G:\My Drive\Content" --skip-drive-check
+echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --skip-drive-check
 echo pause
 ) > "%INSTALL_DIR%\start_server_http.bat"
 
@@ -112,7 +135,7 @@ if exist "%INSTALL_DIR%\nssm.exe" (
     )
 
     REM Install the service
-    "%INSTALL_DIR%\nssm.exe" install %SERVICE_NAME% "!PYTHON_PATH!" "%INSTALL_DIR%\directory_server.py" -p 8050 -d "G:\My Drive\Content" --cert "C:\Certbot\live\shivanelocal.walnutedu.in\fullchain.pem" --key "C:\Certbot\live\shivanelocal.walnutedu.in\privkey.pem"
+    "%INSTALL_DIR%\nssm.exe" install %SERVICE_NAME% "!PYTHON_PATH!" "%INSTALL_DIR%\directory_server.py" -p 8050 -d "!CONTENT_DIR!" --cert "C:\Certbot\live\!SUBDOMAIN!\fullchain.pem" --key "C:\Certbot\live\!SUBDOMAIN!\privkey.pem"
 
     REM Configure service
     "%INSTALL_DIR%\nssm.exe" set %SERVICE_NAME% AppDirectory "%INSTALL_DIR%"
@@ -209,7 +232,7 @@ echo   start_server_http.bat - Run server manually without HTTPS
 echo.
 echo IMPORTANT: Before starting, ensure:
 echo   1. Python is installed and in PATH
-echo   2. Google Drive is synced to: G:\My Drive\Content
-echo   3. SSL certificates exist in: %CERT_DIR%
+echo   2. Google Drive is synced to: !CONTENT_DIR!
+echo   3. SSL certificates exist in: %CERT_DIR%\live\!SUBDOMAIN!\
 echo.
 pause

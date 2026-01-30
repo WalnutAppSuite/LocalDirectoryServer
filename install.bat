@@ -19,7 +19,6 @@ if %errorLevel% neq 0 (
 )
 
 set INSTALL_DIR=C:\DirectoryServer
-set CERT_DIR=C:\Certbot
 set NSSM_URL=https://nssm.cc/release/nssm-2.24.zip
 set SERVICE_NAME=LocalDirectoryServer
 
@@ -40,6 +39,13 @@ if not exist "!CONTENT_DIR!" (
     echo Make sure Google Drive is synced before starting the server.
 )
 echo.
+
+REM Get Certbot directory
+set /p CERT_DIR="Enter Certbot directory path (e.g., C:\Certbot): "
+if "!CERT_DIR!"=="" (
+    set CERT_DIR=C:\Certbot
+    echo Using default: !CERT_DIR!
+)
 
 REM Get subdomain for SSL certificate
 set /p SUBDOMAIN="Enter subdomain for SSL cert (e.g., shivanelocal.walnutedu.in): "

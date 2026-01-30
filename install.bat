@@ -121,7 +121,7 @@ echo Creating service runner script...
 (
 echo @echo off
 echo cd /d "%INSTALL_DIR%"
-echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "!CERT_PATH!\!CERT_FILE!" --key "!CERT_PATH!\!KEY_FILE!"
+echo "!PYTHON_PATH!" directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "!CERT_PATH!\!CERT_FILE!" --key "!CERT_PATH!\!KEY_FILE!"
 ) > "%INSTALL_DIR%\run_service.bat"
 
 REM Create manual startup script
@@ -129,7 +129,7 @@ REM Create manual startup script
 echo @echo off
 echo cd /d "%INSTALL_DIR%"
 echo echo Starting Local Directory Server manually...
-echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "!CERT_PATH!\!CERT_FILE!" --key "!CERT_PATH!\!KEY_FILE!"
+echo "!PYTHON_PATH!" directory_server.py -p 8050 -d "!CONTENT_DIR!" --cert "!CERT_PATH!\!CERT_FILE!" --key "!CERT_PATH!\!KEY_FILE!"
 echo pause
 ) > "%INSTALL_DIR%\start_server.bat"
 
@@ -138,7 +138,7 @@ REM Create HTTP-only startup script
 echo @echo off
 echo cd /d "%INSTALL_DIR%"
 echo echo Starting Local Directory Server ^(HTTP only^)...
-echo python directory_server.py -p 8050 -d "!CONTENT_DIR!" --skip-drive-check
+echo "!PYTHON_PATH!" directory_server.py -p 8050 -d "!CONTENT_DIR!" --skip-drive-check
 echo pause
 ) > "%INSTALL_DIR%\start_server_http.bat"
 
